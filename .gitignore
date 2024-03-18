@@ -1,0 +1,14 @@
+/.env
+/2108.07258.pdf
+/Architecture_Diagram.drawio
+/Dockerfile
+/Foundation models.docx
+/Gen AI Project notes.txt
+/my_keys
+/reddit_policies.csv
+/reddit_policies_backup.csv
+/Scraper.py
+/Snowflake.py
+
+
+*.env
