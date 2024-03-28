@@ -12,17 +12,11 @@ if 'data_exporter' not in globals():
     from mage_ai.data_preparation.decorators import data_exporter
 
 
-# Connection parameters
-# database = get_secret_value('SNOWFLAKE_DATABASE')
-# account = get_secret_value('SNOWFLAKE_ACCOUNT')
-# user = get_secret_value('SNOWFLAKE_USER')
-# password = get_secret_value('SNOWFLAKE_PASSWORD')
-
-database = 'SAFE_FEED'
-account = 'SUB15565.us-east-1'
-user = 'nishanth'
-password = 'nishTools24$'
-
+Connection parameters
+database = get_secret_value('SNOWFLAKE_DATABASE')
+account = get_secret_value('SNOWFLAKE_ACCOUNT')
+user = get_secret_value('SNOWFLAKE_USER')
+password = get_secret_value('SNOWFLAKE_PASSWORD')
 
 
 @data_exporter
