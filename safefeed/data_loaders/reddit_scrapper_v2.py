@@ -1,21 +1,17 @@
 import praw
 import pandas as pd
-from googleapiclient import discovery
-from mage_ai.data_preparation.shared.secrets import get_secret_value
 from openai import OpenAI
 from gradio_client import Client
 from dotenv import load_dotenv
 import os
 import re
 import time
+import datetime
+import snowflake.connector
+from mage_ai.data_preparation.shared.secrets import get_secret_value
 
 # Load environment variables from .env file
 load_dotenv()
-
-if 'data_loader' not in globals():
-    from mage_ai.data_preparation.decorators import data_loader
-if 'test' not in globals():
-    from mage_ai.data_preparation.decorators import test
 
 # Initialize PRAW 
 API_KEY = get_secret_value('REDDIT_API_KEY')
@@ -25,67 +21,12 @@ reddit = praw.Reddit(
     user_agent=get_secret_value('REDDIT_USER_AGENT')
 )
 
-print(get_secret_value('REDDIT_CLIENT_ID'))
-print(get_secret_value('REDDIT_CLIENT_SECRET'))
-print(get_secret_value('REDDIT_USER_AGENT'))
-
-# Initialize Perspective API client
-client = discovery.build(
-    "commentanalyzer",
-    "v1alpha1",
-    developerKey=API_KEY,
-    discoveryServiceUrl="https://commentanalyzer.googleapis.com/$discovery/rest?version=v1alpha1",
-    static_discovery=False,
-)
-
 # Initialize OpenAI client
 OPENAI_API_KEY = get_secret_value('OPENAI_API_KEY')
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 gradio_client = Client("SmilingWolf/wd-tagger")
 
-# Function to get Perspective API scores for a text
-def get_perspective_scores(text):
-    analyze_request = {
-        'comment': {'text': text},
-        'requestedAttributes': {
-            'TOXICITY': {},
-            'SEVERE_TOXICITY': {},
-            'IDENTITY_ATTACK': {},
-            'INSULT': {},
-            'PROFANITY': {},
-            'THREAT': {}
-        }
-    }
-    response = client.comments().analyze(body=analyze_request).execute()
-    scores = {}
-    for category, data in response['attributeScores'].items():
-        scores[category] = data['summaryScore']['value']
-    return scores
-
-# Function to get OpenAI moderation categories
-# def get_openai_moderation_categories(text):
-#     response = openai_client.moderations.create(input=text)
-#     categories = response.results[0].categories
-#     return categories
-
-def extract_image_url(text):
-    # Regular expression pattern to match complete image URLs
-    pattern = r"https?://\S+"
-    match = re.search(pattern, text)
-    if match:
-        url = match.group()
-        # Check if the URL contains any of the specified image extensions
-        if any(ext in url.lower() for ext in ['jpg', 'jpeg', 'png', 'gif']):
-            return url
-    return None
-
-def predict_image_tags(image_url):
-    result = gradio_client.predict(image_url, "SmilingWolf/wd-swinv2-tagger-v3", 0.35, False, 0.85, False, api_name="/predict")
-    tags = result[0]
-    return tags
-
-# Function to get OpenAI moderation categories
 def get_openai_moderation_categories(text):
     response = openai_client.moderations.create(input=text)
     categories = response.results[0].categories
@@ -107,22 +48,30 @@ def get_openai_moderation_categories(text):
     }
     return category_dict
 
+def extract_image_url(text):
+    # Regular expression pattern to match complete image URLs
+    pattern = r"https?://\S+"
+    match = re.search(pattern, text)
+    if match:
+        url = match.group()
+        # Check if the URL contains any of the specified image extensions
+        if any(ext in url.lower() for ext in ['jpg', 'jpeg', 'png', 'gif']):
+            return url
+    return None
 
+def predict_image_tags(image_url):
+    result = gradio_client.predict(image_url, "SmilingWolf/wd-swinv2-tagger-v3", 0.35, False, 0.85, False, api_name="/predict")
+    tags = result[0]
+    return tags
 
-@data_loader
-# Data loader function
-def load_data(*args, **kwargs):
-    subreddit_name = kwargs.get('subreddit_name', "SafeFeed")
+def get_data(subreddit_name, last_trigger_timestamp):
     posts_data = []
-
-    # Load timestamp of the last trigger run
-    last_trigger_timestamp = float(os.getenv('LAST_TRIGGER_TIMESTAMP', '0'))
-    print("UTC", last_trigger_timestamp)
+    # Convert last_trigger_timestamp to Unix timestamp
+    last_trigger_timestamp = last_trigger_timestamp.timestamp()
 
     for submission in reddit.subreddit(subreddit_name).new():
         # Check if the submission is newer than the last trigger run
         if submission.created_utc > last_trigger_timestamp:
-        # if submission.created_utc:
             post_text = submission.title + " " + submission.selftext
             post_data = {
                 'post_id': submission.id,
@@ -130,33 +79,63 @@ def load_data(*args, **kwargs):
                 'author': submission.author.name if submission.author else '[deleted]',
                 'text': submission.selftext,
                 'url': submission.url,
-                **get_perspective_scores(post_text),  # Add Perspective API scores for post text
                 **get_openai_moderation_categories(post_text)  # Add OpenAI moderation categories
             }
-            
-            # posts_data.append(post_data)
+
             # Check if the post contains an image URL in the text
             image_url = extract_image_url(submission.selftext)
             if image_url:
                 image_tags = predict_image_tags(image_url)
                 post_data['image_tags'] = image_tags
-                # post_data['image_url'] = image_url
             else:
                 # If no image URL found in the text, check if the post URL is an image
                 if submission.url.endswith(('jpg', 'jpeg', 'png', 'gif')):
                     image_tags = predict_image_tags(submission.url)
                     post_data['image_tags'] = image_tags
-                    # post_data['image_url'] = submission.url
-            
+
             posts_data.append(post_data)
 
-    # Update the environment variable with the current time as the new last trigger timestamp
-    os.environ['LAST_TRIGGER_TIMESTAMP'] = str(time.time())
+    return pd.DataFrame(posts_data)
 
-    # Create DataFrame from post data
-    df_posts = pd.DataFrame(posts_data)
+def update_last_trigger_timestamp(conn, subreddit_name):
+    cursor = conn.cursor()
+    current_time = time.time()
+    cursor.execute("""
+        UPDATE SAFE_FEED.REDDIT.SUBREDDIT 
+        SET LAST_TRIGGER_TIMESTAMP = TO_TIMESTAMP(%s)
+        WHERE SUBREDDIT_NAME = %s
+    """, (current_time, subreddit_name))
+    conn.commit()
+
+@data_loader
+def load_data(*args, **kwargs):
+    # Connect to Snowflake
+    conn = snowflake.connector.connect(
+        database = 'SAFE_FEED',
+        account = 'SUB15565.us-east-1',
+        user = 'nishanth',
+        password = 'nishTools24$',
+        schema='REDDIT'
+    )
+
+    # Fetch subreddit names and last trigger timestamps from Snowflake
+    cursor = conn.cursor()
+    cursor.execute("SELECT SUBREDDIT_NAME, LAST_TRIGGER_TIMESTAMP FROM REDDIT.SUBREDDIT")
+    subreddits = cursor.fetchall()
+
+    # Loop through each subreddit
+    for subreddit_name, last_trigger_timestamp in subreddits:
+        # Call load_data() function with the subreddit name and last trigger timestamp
+        df_posts = get_data(subreddit_name=subreddit_name, last_trigger_timestamp=last_trigger_timestamp)
+        
+        # Update LAST_TRIGGER_TIMESTAMP in Snowflake
+        update_last_trigger_timestamp(conn, subreddit_name)
+
+    # Close connection
+    conn.close()
 
     return df_posts
+
 
 # Test function
 @test
