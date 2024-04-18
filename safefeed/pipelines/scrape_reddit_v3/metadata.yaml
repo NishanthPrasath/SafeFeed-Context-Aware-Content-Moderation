@@ -4,7 +4,8 @@ blocks:
   configuration:
     dynamic: false
   downstream_blocks:
-  - store_data
+  - combine_categories
+  - reddit_comments_scraper
   executor_config: null
   executor_type: local_python
   has_callback: false
@@ -20,7 +21,23 @@ blocks:
   color: null
   configuration: {}
   downstream_blocks:
-  - reddit_comments_scraper
+  - store_data
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: combine_categories
+  retry_config: null
+  status: executed
+  timeout: null
+  type: transformer
+  upstream_blocks:
+  - reddit_scrapper_v2
+  uuid: combine_categories
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks: []
   executor_config: null
   executor_type: local_python
   has_callback: false
@@ -31,9 +48,9 @@ blocks:
   timeout: null
   type: data_exporter
   upstream_blocks:
-  - reddit_scrapper_v2
+  - combine_categories
   uuid: store_data
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration: {}
   downstream_blocks:
@@ -48,7 +65,7 @@ blocks:
   timeout: null
   type: data_loader
   upstream_blocks:
-  - store_data
+  - reddit_scrapper_v2
   uuid: reddit_comments_scraper
 - all_upstream_blocks_executed: false
   color: null
