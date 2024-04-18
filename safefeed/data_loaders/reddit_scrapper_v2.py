@@ -111,11 +111,11 @@ def update_last_trigger_timestamp(conn, subreddit_name):
 def load_data(*args, **kwargs):
     # Connect to Snowflake
     conn = snowflake.connector.connect(
-        database = 'SAFE_FEED',
-        account = 'SUB15565.us-east-1',
-        user = 'nishanth',
-        password = 'nishTools24$',
-        schema='REDDIT'
+        database = '',
+        account = '',
+        user = '',
+        password = '',
+        schema=''
     )
 
     # Fetch subreddit names and last trigger timestamps from Snowflake
