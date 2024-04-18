@@ -177,7 +177,7 @@ def signup():
                     try:
                         subreddit = reddit.subreddit(subreddit_name)
                         if subreddit.user_is_moderator:
-                            st.success("Sign up successful! We are already a moderator of the provided subreddit.")
+                            st.success("Sign up successful! We are already a moderator of the subreddit.")
                             subreddit_created_utc = subreddit.created_utc
                             subreddit_description = subreddit.description
                             current_time = time.time()
@@ -186,9 +186,20 @@ def signup():
                             # Save user and subreddit data to Snowflake
                             save_to_snowflake(email, password, name, subreddit_name, subreddit_description, subreddit_created_utc, subreddit.id, current_time)
                         else:
-                            # reddit_user.subreddit("test").mod.accept_invite()
-                            # Prompt the user to invite 'safefeedai' as a moderator
-                            st.error("We are not a moderator of the provided subreddit yet. Please invite 'safefeedai' as a moderator through the subreddit user management page.")
+                            try:
+                                subreddit.mod.accept_invite()
+                                st.success("Sign up successful! We are now a moderator of the subreddit.")
+                                subreddit_created_utc = subreddit.created_utc
+                                subreddit_description = subreddit.description
+                                current_time = time.time()
+                                # Save user and subreddit data to Snowflake
+                                save_to_snowflake(email, password, name, subreddit_name, subreddit_description, subreddit_created_utc, subreddit.id, current_time)
+                            except praw.exceptions.RedditAPIException as e:
+                                # Prompt the user to invite 'safefeedai' as a moderator
+                                if "NO_INVITE_FOUND" in str(e):
+                                    st.error("We are not a moderator of the subreddit yet. Please invite 'safefeedai' as a moderator through the subreddit user management page.")
+                                else:
+                                    st.error("An error occurred: {}".format(str(e)))   
                     except Exception as e:
                       st.error("An error occurred: {}".format(str(e)))
                 else:
