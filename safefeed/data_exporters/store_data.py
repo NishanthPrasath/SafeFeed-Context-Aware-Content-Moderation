@@ -33,7 +33,7 @@ def export_data_to_snowflake(df_posts: DataFrame, **kwargs) -> None:
 
         # Define the schema and table name
         # schema = 'REDDIT'
-        table_name = 'COMMENT'
+        table_name = 'SUBMISSION'
         # Create a cursor object
         cur = conn.cursor()
 

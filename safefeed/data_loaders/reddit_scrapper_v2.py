@@ -44,7 +44,7 @@ def get_openai_moderation_categories(text):
         'sexual_minors': categories.sexual_minors,
         'violence': categories.violence,
         'violence_graphic': categories.violence_graphic,
-        'IS_FLAGGED': response.results[0].flagged  # Add flagged attribute
+        'is_flagged': response.results[0].flagged  # Add flagged attribute
     }
     return category_dict
 
@@ -88,7 +88,7 @@ def get_data(subreddit_id, subreddit_name, last_trigger_timestamp):
     for submission in reddit.subreddit(subreddit_name).new():
         # Check if the submission is newer than the last trigger run
         if submission.created_utc > last_trigger_timestamp:
-            post_text = submission.title + " " + submission.selftext
+            post_text = submission.title + ": " + submission.selftext
             post_data = {
                 'SUBMISSION_ID': submission.id,
                 'SUBREDDIT_ID': subreddit_id,
@@ -101,30 +101,30 @@ def get_data(subreddit_id, subreddit_name, last_trigger_timestamp):
             }
 
             # Check if the post contains an image URL in the text
-            print(submission.selftext)
+            # print(submission.selftext)
             try:
                 image_url = extract_image_url(submission.selftext)
                 if image_url:
-                    print("if", image_url)
+                    # print("if", image_url)
                     image_tags = predict_image_tags(image_url)
                     post_data['IMAGE_CAPTION'] = image_tags
                 else:
                     # If no image URL found in the text, check if the post URL is an image
                     if submission.url.endswith(('jpg', 'jpeg', 'png', 'gif')):
-                        print("else", submission.url)
+                        # print("else", submission.url)
                         image_tags = predict_image_tags(submission.url)
                         post_data['IMAGE_CAPTION'] = image_tags
             except ValueError:
                 print("ValueError occurred")
 
 
-            post_data['SENTIMENT_CATEGORY'] = 'Positive' #Need to add sentiment response from LLM through FastAPI
-            post_data['MODERATION_REASON'] = 'Why it has been moderated if moderated' #Response from LLM
-            post_data['REVIEWED'] = 'true' #if questionable from response make it false
-            post_data['IS_IMAGE_GENERAL'] = 'false' #get it from LLM for all the image values
-            post_data['IS_IMAGE_SENSITIVE'] = 'false'
-            post_data['IS_IMAGE_EXPLICIT'] = 'false'
-            post_data['IS_QUESTIONABLE'] = 'false'
+            # post_data['SENTIMENT_CATEGORY'] = 'Positive' #Need to add sentiment response from LLM through FastAPI
+            # post_data['VIOLATION'] = 'Why it has been moderated if moderated' #Response from LLM
+            # post_data['DELETED'] = 'false' #if questionable from response make it false
+            # post_data['IS_IMAGE_GENERAL'] = 'false' #get it from LLM for all the image values
+            # post_data['IS_IMAGE_SENSITIVE'] = 'false'
+            # post_data['IS_IMAGE_EXPLICIT'] = 'false'
+            # post_data['IS_QUESTIONABLE'] = 'false'
 
 
             posts_data.append(post_data)
@@ -169,15 +169,16 @@ def load_data(*args, **kwargs):
 
     df_all_posts = pd.concat(all_posts, ignore_index=True)
 
+    df_all_posts['last_trigger'] =  last_trigger_timestamp
+
     # Close connection
     conn.close()
 
     return df_all_posts
 
-
 # Test function
 @test
 def test_output(output, *args) -> None:
-    assert output is not None, 'The output is undefined'
-    assert isinstance(output, pd.DataFrame), 'Output should be a DataFrame'
-    print(output)  # Print the DataFrame
+    assert output is not None, 'The output DataFrame is undefined'
+    assert isinstance(output, pd.DataFrame), 'The output should be a DataFrame'
+    print(output)
