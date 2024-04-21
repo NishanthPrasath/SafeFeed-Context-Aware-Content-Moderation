@@ -9,6 +9,9 @@ import time
 import datetime
 import snowflake.connector
 from mage_ai.data_preparation.shared.secrets import get_secret_value
+import string
+import emoji
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 # Load environment variables from .env file
 load_dotenv()
@@ -26,6 +29,36 @@ OPENAI_API_KEY = get_secret_value('OPENAI_API_KEY')
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 gradio_client = Client("SmilingWolf/wd-tagger")
+
+def replace_emojis(text):
+    return emoji.demojize(text, delimiters=(" ", " "))
+
+def preprocess_text(text):
+
+    # Lowercase the text
+    text = text.lower()
+    # Remove URLs
+    text = re.sub(r'http\S+', '', text)
+    # Remove special characters and punctuation
+    text = text.translate(str.maketrans('', '', string.punctuation))
+    # Replace emojis with their descriptions
+    text = replace_emojis(text)
+
+    return text
+
+def get_sentiment(text):
+    analyzer = SentimentIntensityAnalyzer()
+    sentiment_scores = analyzer.polarity_scores(text)
+
+    # print(sentiment_scores)
+
+    # Use custom threshold values if needed
+    if sentiment_scores['compound'] > 0:
+        return "Positive"
+    elif sentiment_scores['compound'] < 0:
+        return "Negative"
+    else:
+        return "Neutral"
 
 def get_openai_moderation_categories(text):
     response = openai_client.moderations.create(input=text)
@@ -89,6 +122,7 @@ def get_data(subreddit_id, subreddit_name, last_trigger_timestamp):
         # Check if the submission is newer than the last trigger run
         if submission.created_utc > last_trigger_timestamp:
             post_text = submission.title + ": " + submission.selftext
+            preprocessed_post = preprocess_text(post_text)
             post_data = {
                 'SUBMISSION_ID': submission.id,
                 'SUBREDDIT_ID': subreddit_id,
@@ -97,6 +131,8 @@ def get_data(subreddit_id, subreddit_name, last_trigger_timestamp):
                 'SUBMISSION_AUTHOR': submission.author.name if submission.author else '[deleted]',
                 'SUBMISSION_TIMESTAMP': submission.created_utc,
                 'SUBMISSION_TEXT': submission.selftext,
+                'SENTIMENT_CATEGORY': get_sentiment(preprocessed_post),
+                'LAST_TRIGGER_TIMESTAMP': submission.created_utc,
                 **get_openai_moderation_categories(post_text)  # Add OpenAI moderation categories
             }
 
@@ -165,11 +201,12 @@ def load_data(*args, **kwargs):
         df_posts = get_data(subreddit_id=subreddit_id, subreddit_name=subreddit_name, last_trigger_timestamp=last_trigger_timestamp)
         all_posts.append(df_posts)
         # Update LAST_TRIGGER_TIMESTAMP in Snowflake
-        # update_last_trigger_timestamp(conn, subreddit_name)
+        update_last_trigger_timestamp(conn, subreddit_name)
+
 
     df_all_posts = pd.concat(all_posts, ignore_index=True)
 
-    df_all_posts['last_trigger'] =  last_trigger_timestamp
+    # df_all_posts['last_trigger'] =  last_trigger_timestamp
 
     # Close connection
     conn.close()

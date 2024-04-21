@@ -12,12 +12,12 @@ blocks:
   language: python
   name: reddit_scrapper_v2
   retry_config: null
-  status: executed
+  status: updated
   timeout: null
   type: data_loader
   upstream_blocks: []
   uuid: reddit_scrapper_v2
-- all_upstream_blocks_executed: true
+- all_upstream_blocks_executed: false
   color: grey
   configuration: {}
   downstream_blocks:
@@ -34,7 +34,7 @@ blocks:
   upstream_blocks:
   - reddit_scrapper_v2
   uuid: submission_content_moderation
-- all_upstream_blocks_executed: true
+- all_upstream_blocks_executed: false
   color: null
   configuration: {}
   downstream_blocks:
@@ -45,13 +45,13 @@ blocks:
   language: python
   name: combine_categories
   retry_config: null
-  status: executed
+  status: updated
   timeout: null
   type: transformer
   upstream_blocks:
   - submission_content_moderation
   uuid: combine_categories
-- all_upstream_blocks_executed: true
+- all_upstream_blocks_executed: false
   color: null
   configuration: {}
   downstream_blocks: []
@@ -67,7 +67,7 @@ blocks:
   upstream_blocks:
   - combine_categories
   uuid: store_data
-- all_upstream_blocks_executed: true
+- all_upstream_blocks_executed: false
   color: null
   configuration: {}
   downstream_blocks:
@@ -78,13 +78,13 @@ blocks:
   language: python
   name: reddit_comments_scraper
   retry_config: null
-  status: executed
+  status: updated
   timeout: null
   type: data_loader
   upstream_blocks:
   - reddit_scrapper_v2
   uuid: reddit_comments_scraper
-- all_upstream_blocks_executed: true
+- all_upstream_blocks_executed: false
   color: grey
   configuration: {}
   downstream_blocks:
@@ -95,7 +95,7 @@ blocks:
   language: python
   name: comment_content_moderation
   retry_config: null
-  status: updated
+  status: executed
   timeout: null
   type: custom
   upstream_blocks:
@@ -104,20 +104,21 @@ blocks:
 - all_upstream_blocks_executed: false
   color: null
   configuration: {}
-  downstream_blocks: []
+  downstream_blocks:
+  - store_comments_data
   executor_config: null
   executor_type: local_python
   has_callback: false
   language: python
   name: combine_categories_comment
   retry_config: null
-  status: updated
+  status: executed
   timeout: null
   type: transformer
   upstream_blocks:
   - comment_content_moderation
   uuid: combine_categories_comment
-- all_upstream_blocks_executed: true
+- all_upstream_blocks_executed: false
   color: null
   configuration: {}
   downstream_blocks: []
@@ -130,25 +131,9 @@ blocks:
   status: updated
   timeout: null
   type: data_exporter
-  upstream_blocks: []
+  upstream_blocks:
+  - combine_categories_comment
   uuid: store_comments_data
-- all_upstream_blocks_executed: true
-  color: teal
-  configuration:
-    file_source:
-      path: custom/test.py
-  downstream_blocks: []
-  executor_config: null
-  executor_type: local_python
-  has_callback: false
-  language: python
-  name: test
-  retry_config: null
-  status: updated
-  timeout: null
-  type: custom
-  upstream_blocks: []
-  uuid: test
 cache_block_output_in_memory: false
 callbacks: []
 concurrency_config: {}

@@ -20,62 +20,65 @@ schema=get_secret_value('Nishanth_SF_Schema')
 
 
 @data_exporter
-def export_data_to_snowflake(df_posts: DataFrame, **kwargs) -> None:
-    conn = None  # Initialize the connection variable
-    try:
-        # Establishing connection
-        conn = snowflake.connector.connect(
-            user=user,
-            password=password,
-            account=account,
-            database=database
-        )
+def export_data_to_snowflake(df_comments: DataFrame, **kwargs) -> None:
 
-        # Define the schema and table name
-        # schema = 'REDDIT'
-        table_name = 'COMMENT'
-        # Create a cursor object
-        cur = conn.cursor()
+    if not df_comments.empty:
 
-        # # SQL command to create the schema if it doesn't exist
-        # create_schema_sql = f"CREATE SCHEMA IF NOT EXISTS {schema};"
-        # cur.execute(create_schema_sql)
-        # print(f"Schema '{schema}' is ensured to exist.")
-
-        # # SQL command to create the table if it doesn't exist
-        # # You need to define the table structure according to your DataFrame's structure
-        # create_table_sql = f"""
-        # CREATE TABLE IF NOT EXISTS {schema}.{table_name} (
-        #     id VARCHAR PRIMARY KEY,
-        #     author VARCHAR,
-        #     body TEXT,
-        #     parent_author VARCHAR,
-        #     thread_id VARCHAR
-        #     -- Add more columns as needed based on your DataFrame structure
-        # );
-        # """
-        # cur.execute(create_table_sql)
-        # print(f"Table '{table_name}' in schema '{schema}' is ensured to exist.")
-
-        # Configuration for exporting data
-        config_path = path.join(get_repo_path(), 'io_config.yaml')
-        config_profile = 'default'
-
-        # Use Snowflake loader to export data
-        with Snowflake.with_config(ConfigFileLoader(config_path, config_profile)) as loader:
-            loader.export(
-                df_posts,
-                table_name,
-                database,
-                schema,
-                if_exists='append',  # Append new data to the existing table
+        conn = None  # Initialize the connection variable
+        try:
+            # Establishing connection
+            conn = snowflake.connector.connect(
+                user=user,
+                password=password,
+                account=account,
+                database=database
             )
-    except snowflake.connector.Error as e:
-        # Error handling
-        print(f"Snowflake Error: {e}")
-    finally:
-        # Close the cursor and connection
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
+
+            # Define the schema and table name
+            # schema = 'REDDIT'
+            table_name = 'COMMENT'
+            # Create a cursor object
+            cur = conn.cursor()
+
+            # # SQL command to create the schema if it doesn't exist
+            # create_schema_sql = f"CREATE SCHEMA IF NOT EXISTS {schema};"
+            # cur.execute(create_schema_sql)
+            # print(f"Schema '{schema}' is ensured to exist.")
+
+            # # SQL command to create the table if it doesn't exist
+            # # You need to define the table structure according to your DataFrame's structure
+            # create_table_sql = f"""
+            # CREATE TABLE IF NOT EXISTS {schema}.{table_name} (
+            #     id VARCHAR PRIMARY KEY,
+            #     author VARCHAR,
+            #     body TEXT,
+            #     parent_author VARCHAR,
+            #     thread_id VARCHAR
+            #     -- Add more columns as needed based on your DataFrame structure
+            # );
+            # """
+            # cur.execute(create_table_sql)
+            # print(f"Table '{table_name}' in schema '{schema}' is ensured to exist.")
+
+            # Configuration for exporting data
+            config_path = path.join(get_repo_path(), 'io_config.yaml')
+            config_profile = 'default'
+
+            # Use Snowflake loader to export data
+            with Snowflake.with_config(ConfigFileLoader(config_path, config_profile)) as loader:
+                loader.export(
+                    df_comments,
+                    table_name,
+                    database,
+                    schema,
+                    if_exists='append',  # Append new data to the existing table
+                )
+        except snowflake.connector.Error as e:
+            # Error handling
+            print(f"Snowflake Error: {e}")
+        finally:
+            # Close the cursor and connection
+            if cur:
+                cur.close()
+            if conn:
+                conn.close()

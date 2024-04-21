@@ -9,16 +9,17 @@ if 'test' not in globals():
 @transformer
 def transform(data: DataFrame, *args, **kwargs):
 
-    data['IS_TEXT_HATE_SPEECH'] = data['hate'] | data['hate_threatening']
-    data['IS_TEXT_HARASSMENT'] = data['harassment'] | data['harassment_threatening']
-    data['IS_TEXT_SELF_HARM'] = data['self_harm'] | data['self_harm_intent'] | data['self_harm_instructions']
-    data['IS_TEXT_SEXUAL_CONTENT'] = data['sexual'] | data['sexual_minors']
-    data['IS_TEXT_VIOLENCE'] = data['violence'] | data['violence_graphic']
+    if not data.empty:
+        data['IS_TEXT_HATE_SPEECH'] = data['hate'] | data['hate_threatening']
+        data['IS_TEXT_HARASSMENT'] = data['harassment'] | data['harassment_threatening']
+        data['IS_TEXT_SELF_HARM'] = data['self_harm'] | data['self_harm_intent'] | data['self_harm_instructions']
+        data['IS_TEXT_SEXUAL_CONTENT'] = data['sexual'] | data['sexual_minors']
+        data['IS_TEXT_VIOLENCE'] = data['violence'] | data['violence_graphic']
 
-    # Drop the original columns
-    data.drop(['hate', 'hate_threatening', 'harassment', 'harassment_threatening',
-               'self_harm', 'self_harm_intent', 'self_harm_instructions',
-               'sexual', 'sexual_minors', 'violence', 'violence_graphic','is_flagged','last_trigger'], axis=1, inplace=True)
+        # Drop the original columns
+        data.drop(['hate', 'hate_threatening', 'harassment', 'harassment_threatening',
+                'self_harm', 'self_harm_intent', 'self_harm_instructions',
+                'sexual', 'sexual_minors', 'violence', 'violence_graphic','is_flagged'], axis=1, inplace=True)
 
     return data
 

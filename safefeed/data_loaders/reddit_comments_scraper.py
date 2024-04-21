@@ -104,6 +104,16 @@ def get_sentiment(text):
     else:
         return "Neutral"
 
+def update_last_trigger_timestamp(conn, submission_id):
+    cursor = conn.cursor()
+    current_time = time.time()
+    cursor.execute("""
+        UPDATE SAFE_FEED.REDDIT.SUBMISSION 
+        SET LAST_TRIGGER_TIMESTAMP = TO_TIMESTAMP(%s)
+        WHERE SUBMISSION_ID = %s
+    """, (current_time, submission_id))
+    conn.commit()
+
 @data_loader
 def load_data(data: pd.DataFrame, *args, **kwargs):
 
@@ -118,24 +128,26 @@ def load_data(data: pd.DataFrame, *args, **kwargs):
 
     # Fetch subreddit names and last trigger timestamps from Snowflake
     cursor = conn.cursor()
-    cursor.execute("SELECT SUBMISSION_ID, SUBREDDIT_ID FROM REDDIT.SUBMISSION")
+    cursor.execute("SELECT SUBMISSION_ID, SUBREDDIT_ID, LAST_TRIGGER_TIMESTAMP FROM REDDIT.SUBMISSION")
     submissions = cursor.fetchall()
 
     comments_data = []
 
     # Loop through each subreddit
-    for submission_id, subreddit_id in submissions:
+    for submission_id, subreddit_id, last_trigger in submissions:
 
         # Get submission object
         submission = reddit.submission(id=submission_id)
-        last_trigger_timestamp = data['last_trigger'][0]
+        last_trigger_timestamp = last_trigger.timestamp()
+        # if not data.empty:
+        #     last_trigger_timestamp = data['last_trigger'][0]
         
         # Iterate over comments in submission
         submission.comments.replace_more(limit=None)
         for comment in submission.comments.list():
             if comment.id not in processed_comments:  # Check if comment has not been processed
                 # Check if comment is newer than last trigger timestamp
-                if comment.created_utc > last_trigger_timestamp.timestamp():
+                if comment.created_utc > last_trigger_timestamp:
                     preprocessed_comment = preprocess_text(comment.body)
                     comment_data = {
                         'COMMENT_ID': comment.id,
@@ -143,7 +155,7 @@ def load_data(data: pd.DataFrame, *args, **kwargs):
                         'COMMENT_TEXT': comment.body,
                         'COMMENT_AUTHOR': comment.author.name if comment.author else '[deleted]',
                         'COMMENT_TIMESTAMP': comment.created_utc,
-                        'REPLIED_TO': '',
+                        'REPLIED_TO': submission.author.name if submission.author else '[deleted]',
                         'LEVEL': 0,
                         'SENTIMENT_CATEGORY': get_sentiment(preprocessed_comment),
                         **get_openai_moderation_categories(comment.body)
@@ -151,6 +163,8 @@ def load_data(data: pd.DataFrame, *args, **kwargs):
                     comments_data.append(comment_data)
                     comments_data.extend(get_comments(submission_id, comment, level=1, replied_to=comment.author.name if comment.author else '[deleted]'))
                 processed_comments.add(comment.id)  # Add comment to processed set
+
+        update_last_trigger_timestamp(conn, submission_id)
            
 
     # Create DataFrame from comments data

@@ -51,7 +51,7 @@ def transform_custom(data:DataFrame, *args, **kwargs):
 
             #     # Send a message to the user (author) notifying them of the takedown
             #     message_subject = "Your submission has been taken down"
-            #     message_body = f"Dear {submission_author},\n\nYour submission with ID {submission_id} has been removed due to a violation of community guidelines.\n\nThank you for your understanding."
+            #     message_body = f"Dear {submission_author},\n\nYour submission with ID {submission_id} has been removed by SafeFeed due to a violation of community guidelines.\n\nThank you for your understanding."
             #     reddit.redditor(submission_author).message(message_subject, message_body)
                                 
             # except RedditAPIException as e:
@@ -59,7 +59,6 @@ def transform_custom(data:DataFrame, *args, **kwargs):
             #     print(f"An error occurred while deleting submission {submission_id}: {e}")
 
             #input response from LLM
-            data.at[index, 'SENTIMENT_CATEGORY'] = 'Positive' #Need to add sentiment response from LLM through FastAPI
             data.at[index, 'VIOLATION'] = 'Why it has been moderated if moderated' #Response from LLM
             data.at[index, 'DELETED'] = 'false' #if questionable from response make it false
             data.at[index, 'IS_IMAGE_GENERAL'] = 'false' #get it from LLM for all the image values
@@ -67,7 +66,6 @@ def transform_custom(data:DataFrame, *args, **kwargs):
             data.at[index, 'IS_IMAGE_EXPLICIT'] = 'false'
             data.at[index, 'IS_QUESTIONABLE'] = 'false'
         else:
-            data.at[index, 'SENTIMENT_CATEGORY'] = 'Positive' #Need to add sentiment response from LLM through FastAPI
             data.at[index, 'VIOLATION'] = '' #Response from LLM
             data.at[index, 'DELETED'] = 'false' #if questionable from response make it false
             data.at[index, 'IS_IMAGE_GENERAL'] = 'false' #get it from LLM for all the image values
