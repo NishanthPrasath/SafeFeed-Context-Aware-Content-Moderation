@@ -21,6 +21,7 @@ schema=get_secret_value('Nishanth_SF_Schema')
 
 @data_exporter
 def export_data_to_snowflake(df_posts: DataFrame, **kwargs) -> None:
+
     if not df_posts.empty:
 
         conn = None  # Initialize the connection variable
@@ -72,9 +73,41 @@ def export_data_to_snowflake(df_posts: DataFrame, **kwargs) -> None:
                     schema,
                     if_exists='append',  # Append new data to the existing table
                 )
+
+            for index, row in df_posts.iterrows():
+
+                submission_author = row['SUBMISSION_AUTHOR']
+                submission_id = row['SUBMISSION_ID']
+                is_deleted = row['DELETED']
+
+                if is_deleted:
+
+                    # Check if the author exists in the table
+                    query = "SELECT VIOLATOR_ID, VIOLATION_COUNT FROM REPEATEDVIOLATOR WHERE AUTHOR_NAME = %s"
+                    cur.execute(query, (submission_author))
+                    result = cur.fetchone()
+
+                    if result:
+                        violator_id, violation_count = result
+
+                        # Update the existing row
+                        violation_count += 1
+                        # submission_ids = submission_ids + [submission_id]
+                        query = "UPDATE REPEATEDVIOLATOR SET VIOLATION_COUNT = %s WHERE VIOLATOR_ID = %s"
+                        cur.execute(query, (violation_count, violator_id))
+
+                    else:
+                        # Insert a new row
+                        violation_count = 1
+                        query = "INSERT INTO REPEATEDVIOLATOR (AUTHOR_NAME, VIOLATION_COUNT) VALUES (%s, %s)"
+                        cur.execute(query, (submission_author, violation_count))
+
+                    # Commit the changes
+                    conn.commit()
+
         except snowflake.connector.Error as e:
-            # Error handling
             print(f"Snowflake Error: {e}")
+
         finally:
             # Close the cursor and connection
             if cur:

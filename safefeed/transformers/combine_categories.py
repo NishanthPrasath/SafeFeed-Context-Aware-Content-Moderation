@@ -19,7 +19,7 @@ def transform(data: DataFrame, *args, **kwargs):
         # Drop the original columns
         data.drop(['hate', 'hate_threatening', 'harassment', 'harassment_threatening',
                 'self_harm', 'self_harm_intent', 'self_harm_instructions',
-                'sexual', 'sexual_minors', 'violence', 'violence_graphic','is_flagged'], axis=1, inplace=True)
+                'sexual', 'sexual_minors', 'violence', 'violence_graphic', 'SUBREDDIT_NAME'], axis=1, inplace=True)
 
     return data
 

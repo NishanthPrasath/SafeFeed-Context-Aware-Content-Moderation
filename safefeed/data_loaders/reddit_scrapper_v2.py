@@ -77,7 +77,7 @@ def get_openai_moderation_categories(text):
         'sexual_minors': categories.sexual_minors,
         'violence': categories.violence,
         'violence_graphic': categories.violence_graphic,
-        'is_flagged': response.results[0].flagged  # Add flagged attribute
+        'IS_FLAGGED': response.results[0].flagged  # Add flagged attribute
     }
     return category_dict
 
@@ -126,6 +126,7 @@ def get_data(subreddit_id, subreddit_name, last_trigger_timestamp):
             post_data = {
                 'SUBMISSION_ID': submission.id,
                 'SUBREDDIT_ID': subreddit_id,
+                'SUBREDDIT_NAME': subreddit_name,
                 'SUBMISSION_TITLE': submission.title,
                 'SUBMISSION_URL': submission.url,
                 'SUBMISSION_AUTHOR': submission.author.name if submission.author else '[deleted]',
@@ -144,12 +145,14 @@ def get_data(subreddit_id, subreddit_name, last_trigger_timestamp):
                     # print("if", image_url)
                     image_tags = predict_image_tags(image_url)
                     post_data['IMAGE_CAPTION'] = image_tags
-                else:
                     # If no image URL found in the text, check if the post URL is an image
-                    if submission.url.endswith(('jpg', 'jpeg', 'png', 'gif')):
-                        # print("else", submission.url)
-                        image_tags = predict_image_tags(submission.url)
-                        post_data['IMAGE_CAPTION'] = image_tags
+                elif submission.url.endswith(('jpg', 'jpeg', 'png', 'gif')):
+                    # print("else", submission.url)
+                    image_tags = predict_image_tags(submission.url)
+                    post_data['IMAGE_CAPTION'] = image_tags
+                else:
+                    post_data['IMAGE_CAPTION'] = None
+
             except ValueError:
                 print("ValueError occurred")
 
