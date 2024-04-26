@@ -8,6 +8,21 @@ import requests
 # Load environment variables from .env file
 load_dotenv()
 
+if 'user_input' not in st.session_state:
+    st.session_state.user_input = ''
+
+if 'user_id' not in st.session_state:
+    st.session_state['user_id'] = ''
+
+if 'email' not in st.session_state:
+    st.session_state['email'] = ''
+
+if 'logged_in' not in st.session_state:
+    st.session_state['logged_in'] = False
+
+if 'subreddit_array' not in st.session_state:
+    st.session_state['subreddit_array'] = []
+
 def openai_connection():
     client = OpenAI(
                     api_key=os.environ['OPENAI_API_KEY'],  # this is also the default, it can be omitted
