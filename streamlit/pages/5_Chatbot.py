@@ -52,6 +52,18 @@ def get_file_id(client, subreddit_name=''):
 # Set openAi client , assistant ai and assistant ai thread
 @st.cache_resource
 def load_openai_client_and_assistant():
+
+    """
+    Initializes and retrieves the OpenAI client and a specific assistant using provided API keys and assistant ID. 
+    This function is decorated with `st.cache_resource` to cache the results, reducing the number of API calls by 
+    reusing the client and assistant objects across sessions unless the cache is cleared or invalidated.
+
+    Returns:
+        tuple: Returns a tuple containing the OpenAI client and the assistant object. 
+        This allows for efficient reuse in applications, particularly in environments like Streamlit where 
+        repeated API calls can slow down interactions.
+    """
+
     client          = OpenAI(api_key=api_key)
     my_assistant    = client.beta.assistants.retrieve(assistant_id)
     # thread          = client.beta.threads.create()
@@ -76,9 +88,23 @@ def wait_on_run(run, thread):
     return run
 
 # initiate assistant ai response
-def get_assistant_response(user_input=""):
+def get_assistant_response(selected_subreddit_name, user_input=""):
+    """
+    Initiates a response from the OpenAI assistant based on user input, utilizing a specified set of policies provided in 
+    an attached JSON file. This function handles the interaction with the assistant through the creation of a message and 
+    a run within an OpenAI thread, followed by waiting for the run to complete to retrieve the assistant's response.
 
-    file_id = get_file_id(client=client)
+    Args:
+        user_input (str): The user's query or statement that needs to be analyzed by the assistant.
+
+    Returns:
+        str: The text of the assistant's response based on the analysis of the user input against the provided policies.
+
+    This function ensures the assistant's responses are direct, informative, and relevant to the policies involved, aiding 
+    users in understanding specific policy details without reading the entire document.
+    """
+
+    file_id = get_file_id(client=client, subreddit_name=selected_subreddit_name)
 
     message = client.beta.threads.messages.create(
         thread_id=assistant_thread.id,
@@ -118,6 +144,18 @@ Remember, your goal is to provide informative and accurate responses that reflec
 if 'user_input' not in st.session_state:
     st.session_state.user_input = ''
 
+if 'user_id' not in st.session_state:
+    st.session_state['user_id'] = ''
+
+if 'email' not in st.session_state:
+    st.session_state['email'] = ''
+
+if 'logged_in' not in st.session_state:
+    st.session_state['logged_in'] = False
+
+if 'subreddit_array' not in st.session_state:
+    st.session_state['subreddit_array'] = []
+
 def submit():
     st.session_state.user_input = st.session_state.query
     st.session_state.query = ''
@@ -130,31 +168,62 @@ if 'chat_history' not in st.session_state:
 
 # Function to add a new message to the chat history and update session state
 def add_message(role, content):
+
+    """
+    Adds a new message to the chat history stored in the session state. This function is designed to handle the dynamic 
+    interaction history in a conversational UI, ensuring that each participant's messages are recorded in the order they 
+    are received.
+
+    Args:
+        role (str): The role of the message sender, typically 'user' or 'assistant', indicating who sent the message.
+        content (str): The text content of the message to be added to the chat history.
+
+    Effects:
+        Modifies the session state by appending a new message to the chat history list. Each message is stored as a 
+        dictionary with 'role' and 'content' keys.
+    """
+    
     st.session_state.chat_history.append({'role': role, 'content': content})
 
 # Streamlit UI
 st.title(":shield: Safe-Feed policy guide :shield:")
+st.write("")
+if st.session_state['logged_in'] == False:
+    st.title("Please log-in to access this feature!")
 
-user_input = st.text_input("Type your message:", "")
+else:   
 
-if st.button("Send"):
-    if user_input:
-        # Add the user message to the chat history
-        add_message(role="user", content=user_input)
+    subreddit_array = st.session_state.subreddit_array
 
-        # Get the assistant's response
-        response = get_assistant_response(user_input)
+    if "Default policies" not in subreddit_array:
+        subreddit_array.insert(0, "Default policies")
 
-        # Add the assistant's response to the chat history
-        add_message(role="assistant", content=response)
+    if subreddit_array:
+        
+        # Display a select box for choosing the subreddit
+        st.subheader("Select your Subreddit: ")
+        selected_subreddit_name = st.selectbox("Subreddit list", subreddit_array)
+    
+    user_input = st.text_input("Type your message:", "")
+
+    if st.button("Send"):
+        if user_input:
+            # Add the user message to the chat history
+            add_message(role="user", content=user_input)
+
+            # Get the assistant's response
+            response = get_assistant_response(selected_subreddit_name, user_input)
+
+            # Add the assistant's response to the chat history
+            add_message(role="assistant", content=response)
 
 
-# Display the chat history
-st.header("Conversation")
-for index, chat in enumerate(st.session_state.chat_history, start=1):  # start=1 to make keys more human-readable
-    if chat['role'] == "user":
-        # Use the message index as part of the key to ensure uniqueness
-        st.text_area(label="You", value=chat['content'], key=f'user_{index}', height=100)
-    else:  # Assistant's messages
-        # Use the message index as part of the key to ensure uniqueness
-        st.text_area(label="Assistant", value=chat['content'], key=f'assistant_{index}', height=400)
+    # Display the chat history
+    st.header("Conversation")
+    for index, chat in enumerate(st.session_state.chat_history, start=1):  # start=1 to make keys more human-readable
+        if chat['role'] == "user":
+            # Use the message index as part of the key to ensure uniqueness
+            st.text_area(label="You", value=chat['content'], key=f'user_{index}', height=100)
+        else:  # Assistant's messages
+            # Use the message index as part of the key to ensure uniqueness
+            st.text_area(label="Assistant", value=chat['content'], key=f'assistant_{index}', height=400)

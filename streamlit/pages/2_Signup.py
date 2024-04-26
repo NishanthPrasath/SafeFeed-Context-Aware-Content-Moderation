@@ -1,21 +1,26 @@
 import streamlit as st
+import snowflake.connector
+
+import os
 import praw
 import time
 from dotenv import load_dotenv
-import os
-import snowflake.connector
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Set Streamlit app title and page config
-st.set_page_config(page_title="SafeFeed", page_icon=":shield:")
 
-# Define Streamlit pages
-PAGES = {
-    "Login": "login",
-    "Sign Up": "signup"
-}
+# Function to establish connection to Snowflake
+def connect_to_snowflake():
+    conn = snowflake.connector.connect(
+        user=os.getenv("SNOWFLAKE_USERNAME"),
+        password=os.getenv("SNOWFLAKE_PASSWORD"),
+        account=os.getenv("SNOWFLAKE_ACCOUNT"),
+        warehouse=os.getenv("SNOWFLAKE_WAREHOUSE"),
+        database=os.getenv("SNOWFLAKE_DATABASE"),
+        schema=os.getenv("SNOWFLAKE_SCHEMA"),
+    )
+    return conn
 
 # Streamlit theme configuration
 def configure_theme():
@@ -30,6 +35,7 @@ def configure_theme():
         """,
         unsafe_allow_html=True,
     )
+
 
 # Function to check if all fields are filled
 def check_fields_filled(fields):
@@ -98,58 +104,7 @@ def save_to_snowflake(email, password, full_name, subreddit_name, subreddit_desc
     cursor.close()
     conn.close()
 
-# Login page content
-def login():
-    st.title("SafeFeed: Context Aware Moderation")
-    st.write("")  # Add space
-    email = st.text_input("Email")
-    password = st.text_input("Password", type="password")
-    if st.button("Login"):
-        if check_fields_filled([email, password]):
-            # Add login functionality here
-            st.success("Logged in successfully!")
-        else:
-            st.error("Please fill in all the fields.")
 
-# Sign up page content
-# def signup():
-#     st.title("SafeFeed: Context Aware Moderation")
-#     st.write("")  # Add space
-#     name = st.text_input("Name")
-#     email = st.text_input("Email")
-#     password = st.text_input("Password", type="password")
-#     subreddit_name = st.text_input("Subreddit Name")
-#     reddit_username = st.text_input("Reddit Username")
-#     reddit_password = st.text_input("Reddit Password", type="password")
-
-#     if st.button("Sign Up"):
-#         if check_fields_filled([name, email, password, subreddit_name, reddit_username, reddit_password]):
-#             # Check if the email already exists
-#             if email_exists(email):
-#                 st.error("Email already exists. Please use a different email address.")
-#             else:
-#                 # Check if user is a moderator for the provided subreddit using PRAW
-#                 reddit = praw.Reddit(
-#                     client_id=os.getenv("REDDIT_CLIENT_ID"),
-#                     client_secret=os.getenv("REDDIT_CLIENT_SECRET"),
-#                     user_agent=os.getenv("REDDIT_USER_AGENT"),
-#                     username=reddit_username,
-#                     password=reddit_password
-#                 )
-#                 try:
-#                     subreddit = reddit.subreddit(subreddit_name)
-#                     if subreddit.user_is_moderator:
-#                         st.success("Sign up successful! You are a moderator of the provided subreddit.")
-#                         # Get the subreddit ID
-#                         subreddit_id = subreddit.id
-#                         # Save user and subreddit data to Snowflake
-#                         save_to_snowflake(email, password, name, subreddit_name, reddit_username, reddit_password, subreddit_id)
-#                     else:
-#                         st.error("You are not a moderator of the provided subreddit.")
-#                 except Exception as e:
-#                     st.error("An error occurred: {}".format(str(e)))
-#         else:
-#             st.error("Please fill in all the fields.")
 
 def signup():
     st.title("SafeFeed: Context Aware Moderation")
@@ -207,16 +162,11 @@ def signup():
         else:
             st.error("Please fill in all the fields.")
 
-# Main function to run the Streamlit app
+
+# Streamlit app
 def main():
     configure_theme()
-    st.sidebar.title("Pages")  # Change "Navigation" to "Menu"
-    selection = st.sidebar.radio("Go to", list(PAGES.keys()))
-    page = PAGES[selection]
-    if page == "login":
-        login()
-    elif page == "signup":
-        signup()
+    signup()
 
 if __name__ == "__main__":
     main()

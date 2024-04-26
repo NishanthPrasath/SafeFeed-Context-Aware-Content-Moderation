@@ -38,7 +38,7 @@ def initialize_default_policies_and_folders():
     else:
         # Upload the new file
         client.files.create(
-            file=open('reddit_policies.json', "rb"),
+            file=open('pages/Custom_policies/reddit_policies.json', "rb"),
             purpose="assistants"
             )
     
@@ -108,7 +108,7 @@ def load_policies(subreddit_name=None):
     # Check if the specific file exists, if not, revert to the default
     if not os.path.exists(path):
         if subreddit_name != '':
-            if subreddit_name:
+            if subreddit_name and subreddit_name not in ["reddit_policies_Default policies.json"]:
                 st.warning(f"No specific policy file found for subreddit '{subreddit_name}'. Loading default policies.")
         path = 'pages/Custom_policies/reddit_policies.json'
 
@@ -133,10 +133,26 @@ def main():
     st.write("This tool allows you to edit existing policies or create custom policy files for a specific subreddit.")
 
     # Input for subreddit name
-    subreddit_name = st.text_input("Enter the subreddit name to load specific policies, or leave empty for default policies:")
+    # subreddit_name = st.text_input("Enter the subreddit name to load specific policies, or leave empty for default policies:")
+
+    subreddit_array = st.session_state.subreddit_array
+
+    if "Default policies" not in subreddit_array:
+        subreddit_array.insert(0, "Default policies")
+
+    if subreddit_array:
+        
+        # Display a select box for choosing the subreddit
+        st.subheader("Select your Subreddit: ")
+        subreddit_name = st.selectbox("Subreddit list", subreddit_array)
+
+    else:
+        # Display a select box for choosing the subreddit
+        st.subheader("Select your Subreddit: ")
+        subreddit_name = st.selectbox("Subreddit list", [])
 
     # Using session state to store and retrieve the data and selected policy
-    if 'data' not in st.session_state or st.button("Fetch subreddit policies"):
+    if 'data' not in st.session_state or st.button("Fetch policies"):
         st.session_state.data = load_policies(f'reddit_policies_{subreddit_name}.json' if subreddit_name else 'reddit_policies.json')
         if st.session_state.data is None:
             st.error("Failed to load any policy data.")
@@ -168,11 +184,15 @@ def main():
                 if selected_policy:
                     data[selected_policy] = edited_content
 
-                # Add the new custom policy under a 'custom' key
-                if custom_policy_name and custom_policy_content:
-                    if 'custom' not in data:
-                        data['custom'] = {}
-                    data['custom'][custom_policy_name] = custom_policy_content
+                if 'custom' in data:
+                    data['custom'] = edited_content
+
+                else:
+                    # Add the new custom policy under a 'custom' key
+                    if custom_policy_name and custom_policy_content:
+                        if 'custom' not in data:
+                            data['custom'] = {}
+                        data['custom'][custom_policy_name] = custom_policy_content
 
                 # Save the updated policies to a new file named dynamically based on the subreddit name
                 new_file_path = f'pages/Custom_policies/reddit_policies_{subreddit_name}.json'
