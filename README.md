@@ -1,46 +1,63 @@
-# Safe-Feed
+# SafeFeed: Context-Aware Content Moderation with Generative AI
 
-
-## Product Overview
- 
-
-SafeFeed is a context-aware content moderation system designed for Reddit, that utilizes OpenAI's state-of-the-art large language models with deepfake detection. This robust system uses Mage for data orchestration and Streamlit for a user-friendly dashboard for real-time monitoring and management, ensuring a safe and engaging environment for all users.
- 
+SafeFeed is an innovative platform that harnesses the power of Generative AI and Large Language Models (LLMs) to revolutionize content moderation on social media platforms like Reddit. It aims to create healthier online communities by ensuring that the shared content adheres to community guidelines while preserving the essence of open discussions.
 
 ## Features
 
+- **Text Content Moderation**: SafeFeed utilizes the OpenAI Moderation API to analyze text content (posts and comments) for policy violations, such as hate speech, harassment, or threats.
+- **Image Analysis**: SafeFeed employs the Waifu Diffusion model to accurately capture important details in images, aiding in understanding the context of visual content.
+- **Generative AI**: SafeFeed leverages OpenAI's GPT-4 model to interpret the meaning of text and images, enabling context-aware content moderation decisions based on platform policies.
+- **Policy Retrieval**: SafeFeed uses the OpenAI Assistant API to retrieve the most relevant policies for a given content, ensuring moderation decisions align with community guidelines.
+- **Sentiment Analysis**: SafeFeed utilizes the VaderSentiment library to analyze the sentiment (positive, negative, or neutral) of user-generated content, providing insights into the emotional tone.
+- **User Notification**: When content is moderated, SafeFeed notifies the author, explaining the reason for removal and the violated policy.
+- **Data Processing Pipeline**: SafeFeed integrates with Mage AI, a data pipeline tool, to efficiently manage tasks like data collection, content analysis, sentiment analysis, and data storage.
+- **Data Storage**: SafeFeed stores processed data, including moderated content, violation categories, sentiment analysis results, and user information, in Snowflake for easy access and analysis.
+- **User Interface**: SafeFeed provides a user-friendly interface built with Streamlit, allowing business users and subreddit moderators to customize the platform, define custom policies, and access moderation insights.
+- **Policy Guide Chatbot**: SafeFeed offers a chatbot powered by the OpenAI Assistant API to help users understand platform policies through natural language queries.
+- **AI-Generated Image Detection**: SafeFeed integrates with Sight Engine to identify and provide context for AI-generated images associated with posts.
 
-•	Scrapes data automatically from Reddit, ensuring comprehensive coverage of all user interactions
+## Architecture Diagram
 
-•	Utilizes OpenAI’s large language models to analyze posts and comments instantaneously, flagging inappropriate content such as hate speech, harassment or violence
+![Architecture](https://github.com/LakshmanRaajS/Safe-Feed/assets/114884510/2c20535d-d703-40a5-b867-972b2194a1f1)
 
-•	Uses Mage for data orchestration, enabling efficient handling of large and complex data workflows
+## Getting Started
 
-•	Incorporates Deepfake Detect model to detect AI-generated images, addressing the evolving challenge of synthetic media on social platforms
+1. Clone the repository: `git clone https://github.com/your-username/SafeFeed.git`
+2. Install the required dependencies: `pip install -r requirements.txt`
+3. Create a `.env` file in the root directory with the following structure:
 
-•	Provides a dashboard for business users, allowing them to monitor subreddit activities, view analytics on flagged content and track moderation outcomes to ensure community guidelines are upheld and to enhance user interaction without increasing moderator workload
+```
+OPENAI_ASSISTANT_ID=''
+OPENAI_API_KEY=''
+REDDIT_CLIENT_ID=''
+REDDIT_CLIENT_SECRET=''
+REDDIT_USER_AGENT=''
+REDDIT_USERNAME=''
+REDDIT_PASSWORD=''
+SNOWFLAKE_USERNAME=''
+SNOWFLAKE_PASSWORD=''
+SNOWFLAKE_ACCOUNT=''
+SNOWFLAKE_DATABASE=''
+SNOWFLAKE_SCHEMA=''
+```
 
-•	Allows moderators to define custom moderation policies tailored to specific subreddit needs
+4. Set up the Mage AI project and add the following secrets:
+   - OPENAI_ASSISTANT_ID
+   - OPENAI_API_KEY
+   - REDDIT_CLIENT_ID
+   - REDDIT_CLIENT_SECRET
+   - REDDIT_USER_AGENT
+   - REDDIT_USERNAME
+   - REDDIT_PASSWORD
+   - SNOWFLAKE_USERNAME
+   - SNOWFLAKE_PASSWORD
+   - SNOWFLAKE_ACCOUNT
+   - SNOWFLAKE_DATABASE
+   - SNOWFLAKE_SCHEMA
+   - SIGHTENGINE_API_USER
+   - SIGHTENGINE_API_SECRET
+5. Run the application: `streamlit run app.py`
 
-•	Features a chatbot that moderators can interact with to query details about the policy impacts, making the system highly responsive
+## Resources
 
-
-## Benefits
-
-
-•	Ensures a safe platform for interaction by addressing both text and image-based violations
-
-•	Assists in maintaining compliance with evolving internet safety laws and regulations
-
-•	Reduces the need for extensive human moderators, cutting down operational costs and response times
-
-•	Offers detailed insights into content violations and moderator performance, enhancing strategic decision-making
-
-•	Ensures positive user engagement, satisfaction and retention by prioritizing authenticity, trustworthiness of content and fostering community trust
-
-
-## Unique Value Proposition
-
-
-SafeFeed uniquely integrates text and image moderation and automates it using OpenAI’s LLMs, unlike other moderators that use machine learning models, setting a new standard in content moderation technology. By automating content moderation and providing tools to actively manage and refine user interactions, SafeFeed not only protects but also enhances the user experience on Reddit, making it an indispensable tool for subreddit moderators and business users.
-
+- [Application Link](http://35.237.36.236:8502/)
