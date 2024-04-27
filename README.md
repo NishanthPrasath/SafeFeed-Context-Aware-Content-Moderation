@@ -18,7 +18,7 @@ SafeFeed is an innovative platform that harnesses the power of Generative AI and
 
 ## Architecture Diagram
 
-![Architecture](https://github.com/LakshmanRaajS/Safe-Feed/assets/114884510/2c20535d-d703-40a5-b867-972b2194a1f1)
+![Architecture](https://github.com/LakshmanRaajS/Safe-Feed/assets/114884510/ba539c18-34fd-4c0c-af7b-d3cecbdea714)
 
 ## Getting Started
 
