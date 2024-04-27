@@ -3,6 +3,13 @@ import snowflake.connector
 
 import os
 from dotenv import load_dotenv
+from PIL import Image
+
+# Load the image
+image = Image.open('Safe_Feed_logo.jpg')
+
+# Display the image in the sidebar
+st.sidebar.image(image, caption='')
 
 # Load environment variables from .env file
 load_dotenv()

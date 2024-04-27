@@ -7,6 +7,13 @@ from dotenv import load_dotenv
 import plotly.express as px
 import plotly.graph_objs as go
 import seaborn as sns
+from PIL import Image
+
+# Load the image
+image = Image.open('Safe_Feed_logo.jpg')
+
+# Display the image in the sidebar
+st.sidebar.image(image, caption='')
 
 
 # Load environment variables from .env file
@@ -78,9 +85,9 @@ def get_sentiment_category_counts(selected_subreddit_id, conn):
 
 def sentiment_count(sentiment_data):
     sentiment_counts = {
-        'positive': sentiment_data.loc[sentiment_data['SENTIMENT_CATEGORY'] == 'positive', 'CATEGORY_COUNT'].iloc[0] if 'positive' in sentiment_data['SENTIMENT_CATEGORY'].values else 0,
-        'negative': sentiment_data.loc[sentiment_data['SENTIMENT_CATEGORY'] == 'negative', 'CATEGORY_COUNT'].iloc[0] if 'negative' in sentiment_data['SENTIMENT_CATEGORY'].values else 0,
-        'neutral': sentiment_data.loc[sentiment_data['SENTIMENT_CATEGORY'] == 'neutral', 'CATEGORY_COUNT'].iloc[0] if 'neutral' in sentiment_data['SENTIMENT_CATEGORY'].values else 0
+        'positive': sentiment_data.loc[sentiment_data['SENTIMENT_CATEGORY'] == 'Positive', 'CATEGORY_COUNT'].iloc[0] if 'Positive' in sentiment_data['SENTIMENT_CATEGORY'].values else 0,
+        'negative': sentiment_data.loc[sentiment_data['SENTIMENT_CATEGORY'] == 'Negative', 'CATEGORY_COUNT'].iloc[0] if 'Negative' in sentiment_data['SENTIMENT_CATEGORY'].values else 0,
+        'neutral': sentiment_data.loc[sentiment_data['SENTIMENT_CATEGORY'] == 'Neutral', 'CATEGORY_COUNT'].iloc[0] if 'Neutral' in sentiment_data['SENTIMENT_CATEGORY'].values else 0
     }
     return sentiment_counts
 
@@ -181,9 +188,9 @@ def get_comment_count_by_sentiment(selected_subreddit_id, conn):
 
 def sentiment_comment_count(sentiment_comment_data):
     sentiment_comment_counts = {
-        'positive': sentiment_comment_data.loc[sentiment_comment_data['SENTIMENT_CATEGORY'] == 'positive', 'COMMENT_COUNT'].iloc[0] if 'positive' in sentiment_comment_data['SENTIMENT_CATEGORY'].values else 0,
-        'negative': sentiment_comment_data.loc[sentiment_comment_data['SENTIMENT_CATEGORY'] == 'negative', 'COMMENT_COUNT'].iloc[0] if 'negative' in sentiment_comment_data['SENTIMENT_CATEGORY'].values else 0,
-        'neutral': sentiment_comment_data.loc[sentiment_comment_data['SENTIMENT_CATEGORY'] == 'neutral', 'COMMENT_COUNT'].iloc[0] if 'neutral' in sentiment_comment_data['SENTIMENT_CATEGORY'].values else 0
+        'positive': sentiment_comment_data.loc[sentiment_comment_data['SENTIMENT_CATEGORY'] == 'Positive', 'COMMENT_COUNT'].iloc[0] if 'Positive' in sentiment_comment_data['SENTIMENT_CATEGORY'].values else 0,
+        'negative': sentiment_comment_data.loc[sentiment_comment_data['SENTIMENT_CATEGORY'] == 'Negative', 'COMMENT_COUNT'].iloc[0] if 'Negative' in sentiment_comment_data['SENTIMENT_CATEGORY'].values else 0,
+        'neutral': sentiment_comment_data.loc[sentiment_comment_data['SENTIMENT_CATEGORY'] == 'Neutral', 'COMMENT_COUNT'].iloc[0] if 'Neutral' in sentiment_comment_data['SENTIMENT_CATEGORY'].values else 0
     }
     return sentiment_comment_counts
 

@@ -5,9 +5,19 @@ import os
 import praw
 import time
 from dotenv import load_dotenv
+from PIL import Image
+
+# Load the image
+image = Image.open('Safe_Feed_logo.jpg')
+
+# Display the image in the sidebar
+st.sidebar.image(image, caption='')
+
 
 # Load environment variables from .env file
 load_dotenv()
+
+
 
 
 # Function to establish connection to Snowflake
@@ -107,7 +117,7 @@ def save_to_snowflake(email, password, full_name, subreddit_name, subreddit_desc
 
 
 def signup():
-    st.title("SafeFeed: Context Aware Moderation")
+    st.title("SafeFeed: Context-Aware Content Moderation")
     st.write("")  # Add space
     name = st.text_input("Name")
     email = st.text_input("Email")
