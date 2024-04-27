@@ -145,11 +145,13 @@ def get_data(subreddit_id, subreddit_name, last_trigger_timestamp):
                     # print("if", image_url)
                     image_tags = predict_image_tags(image_url)
                     post_data['IMAGE_CAPTION'] = image_tags
+                    post_data['IMAGE_URL'] = image_url
                     # If no image URL found in the text, check if the post URL is an image
                 elif submission.url.endswith(('jpg', 'jpeg', 'png', 'gif')):
                     # print("else", submission.url)
                     image_tags = predict_image_tags(submission.url)
                     post_data['IMAGE_CAPTION'] = image_tags
+                    post_data['IMAGE_URL'] = submission.url
                 else:
                     post_data['IMAGE_CAPTION'] = None
 

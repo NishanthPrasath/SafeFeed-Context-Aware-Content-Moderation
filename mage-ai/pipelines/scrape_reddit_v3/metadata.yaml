@@ -12,12 +12,12 @@ blocks:
   language: python
   name: reddit_scrapper_v2
   retry_config: null
-  status: updated
+  status: executed
   timeout: null
   type: data_loader
   upstream_blocks: []
   uuid: reddit_scrapper_v2
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: grey
   configuration: {}
   downstream_blocks:
@@ -61,13 +61,13 @@ blocks:
   language: python
   name: store_data
   retry_config: null
-  status: updated
+  status: executed
   timeout: null
   type: data_exporter
   upstream_blocks:
   - combine_categories
   uuid: store_data
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration: {}
   downstream_blocks:
@@ -84,7 +84,7 @@ blocks:
   upstream_blocks:
   - reddit_scrapper_v2
   uuid: reddit_comments_scraper
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: grey
   configuration: {}
   downstream_blocks:
@@ -101,7 +101,7 @@ blocks:
   upstream_blocks:
   - reddit_comments_scraper
   uuid: comment_content_moderation
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration: {}
   downstream_blocks:
@@ -118,7 +118,7 @@ blocks:
   upstream_blocks:
   - comment_content_moderation
   uuid: combine_categories_comment
-- all_upstream_blocks_executed: false
+- all_upstream_blocks_executed: true
   color: null
   configuration: {}
   downstream_blocks: []
@@ -128,7 +128,7 @@ blocks:
   language: python
   name: store_comments_data
   retry_config: null
-  status: executed
+  status: updated
   timeout: null
   type: data_exporter
   upstream_blocks:

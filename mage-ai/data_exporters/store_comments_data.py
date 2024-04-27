@@ -79,12 +79,16 @@ def export_data_to_snowflake(df_comments: DataFrame, **kwargs) -> None:
                 comment_author = row['COMMENT_AUTHOR']
                 comment_id = row['COMMENT_ID']
                 is_deleted = row['DELETED']
+                submission_id = row['SUBMISSION_ID']
 
                 if is_deleted:
 
+                    cur.execute("SELECT SUBREDDIT_ID FROM SUBMISSION WHERE SUBMISSION_ID = %s", (submission_id))
+                    subreddit_id = cur.fetchone()
+
                     # Check if the author exists in the table
-                    query = "SELECT VIOLATOR_ID, VIOLATION_COUNT FROM REDDIT.REPEATEDVIOLATOR WHERE AUTHOR_NAME = %s"
-                    cur.execute(query, (comment_author))
+                    query = "SELECT VIOLATOR_ID, VIOLATION_COUNT FROM REDDIT.REPEATEDVIOLATOR WHERE AUTHOR_NAME = %s AND SUBREDDIT_ID = %s"
+                    cur.execute(query, (comment_author, subreddit_id))
                     result = cur.fetchone()
 
                     if result:
@@ -93,14 +97,14 @@ def export_data_to_snowflake(df_comments: DataFrame, **kwargs) -> None:
                         # Update the existing row
                         violation_count += 1
                         # comment_ids = comment_ids + [comment_id]
-                        query = "UPDATE REDDIT.REPEATEDVIOLATOR SET VIOLATION_COUNT = %s WHERE VIOLATOR_ID = %s"
-                        cur.execute(query, (violation_count, violator_id))
+                        query = "UPDATE REDDIT.REPEATEDVIOLATOR SET VIOLATION_COUNT = %s WHERE VIOLATOR_ID = %s AND SUBREDDIT_ID = %s"
+                        cur.execute(query, (violation_count, violator_id, subreddit_id))
 
                     else:
                         # Insert a new row
                         violation_count = 1
-                        query = "INSERT INTO REDDIT.REPEATEDVIOLATOR (AUTHOR_NAME, VIOLATION_COUNT) VALUES (%s, %s)"
-                        cur.execute(query, (comment_author, violation_count))
+                        query = "INSERT INTO REDDIT.REPEATEDVIOLATOR (SUBREDDIT_ID, AUTHOR_NAME, VIOLATION_COUNT) VALUES (%s, %s, %s)"
+                        cur.execute(query, (subreddit_id, comment_author, violation_count))
 
                     # Commit the changes
                     conn.commit()

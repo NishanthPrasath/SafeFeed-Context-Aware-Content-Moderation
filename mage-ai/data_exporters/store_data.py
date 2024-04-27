@@ -79,12 +79,13 @@ def export_data_to_snowflake(df_posts: DataFrame, **kwargs) -> None:
                 submission_author = row['SUBMISSION_AUTHOR']
                 submission_id = row['SUBMISSION_ID']
                 is_deleted = row['DELETED']
+                subreddit_id =  row['SUBREDDIT_ID']
 
                 if is_deleted:
 
                     # Check if the author exists in the table
-                    query = "SELECT VIOLATOR_ID, VIOLATION_COUNT FROM REPEATEDVIOLATOR WHERE AUTHOR_NAME = %s"
-                    cur.execute(query, (submission_author))
+                    query = "SELECT VIOLATOR_ID, VIOLATION_COUNT FROM REDDIT.REPEATEDVIOLATOR WHERE AUTHOR_NAME = %s AND SUBREDDIT_ID = %s"
+                    cur.execute(query, (submission_author, subreddit_id))
                     result = cur.fetchone()
 
                     if result:
@@ -93,14 +94,14 @@ def export_data_to_snowflake(df_posts: DataFrame, **kwargs) -> None:
                         # Update the existing row
                         violation_count += 1
                         # submission_ids = submission_ids + [submission_id]
-                        query = "UPDATE REPEATEDVIOLATOR SET VIOLATION_COUNT = %s WHERE VIOLATOR_ID = %s"
-                        cur.execute(query, (violation_count, violator_id))
+                        query = "UPDATE REDDIT.REPEATEDVIOLATOR SET VIOLATION_COUNT = %s WHERE VIOLATOR_ID = %s AND SUBREDDIT_ID = %s"
+                        cur.execute(query, (violation_count, violator_id, subreddit_id))
 
                     else:
                         # Insert a new row
                         violation_count = 1
-                        query = "INSERT INTO REPEATEDVIOLATOR (AUTHOR_NAME, VIOLATION_COUNT) VALUES (%s, %s)"
-                        cur.execute(query, (submission_author, violation_count))
+                        query = "INSERT INTO REDDIT.REPEATEDVIOLATOR (SUBREDDIT_ID, AUTHOR_NAME, VIOLATION_COUNT) VALUES (%s, %s, %s)"
+                        cur.execute(query, (subreddit_id, submission_author, violation_count))
 
                     # Commit the changes
                     conn.commit()
