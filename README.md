@@ -61,3 +61,4 @@ SNOWFLAKE_SCHEMA=''
 ## Resources
 
 - [Application Link](http://35.237.36.236:8502/)
+- [Application Demo](https://www.youtube.com/watch?v=AWAqV3wDaXg)
