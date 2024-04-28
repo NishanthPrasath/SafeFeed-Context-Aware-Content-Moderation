@@ -26,7 +26,7 @@ def connect_to_snowflake():
         user=os.getenv("SNOWFLAKE_USERNAME"),
         password=os.getenv("SNOWFLAKE_PASSWORD"),
         account=os.getenv("SNOWFLAKE_ACCOUNT"),
-        warehouse=os.getenv("SNOWFLAKE_WAREHOUSE"),
+        # warehouse=os.getenv("SNOWFLAKE_WAREHOUSE"),
         database=os.getenv("SNOWFLAKE_DATABASE"),
         schema=os.getenv("SNOWFLAKE_SCHEMA"),
     )
@@ -63,7 +63,7 @@ def subreddit_exists(reddit, subreddit_name):
 
 def email_exists(email):
     conn = snowflake.connector.connect(
-        user=os.getenv("SNOWFLAKE_USER"),
+        user=os.getenv("SNOWFLAKE_USERNAME"),
         password=os.getenv("SNOWFLAKE_PASSWORD"),
         account=os.getenv("SNOWFLAKE_ACCOUNT"),
         database=os.getenv("SNOWFLAKE_DATABASE"),

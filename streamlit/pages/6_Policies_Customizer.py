@@ -164,8 +164,8 @@ def main():
 
         subreddit_array = st.session_state.subreddit_array
 
-        if "Default policies" not in subreddit_array:
-            subreddit_array.insert(0, "Default policies")
+        if "Default policies" in subreddit_array:
+            subreddit_array.remove("Default policies")
 
         if subreddit_array:
             
