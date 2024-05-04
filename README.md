@@ -22,7 +22,7 @@ SafeFeed is an innovative platform that harnesses the power of Generative AI and
 
 ## Getting Started
 
-1. Clone the repository: `git clone https://github.com/your-username/SafeFeed.git`
+1. Clone the repository: `git clone https://github.com/NishanthPrasath/SafeFeed-Context-Aware-Content-Moderation.git`
 2. Install the required dependencies: `pip install -r requirements.txt`
 3. Create a `.env` file in the root directory with the following structure:
 
