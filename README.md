@@ -60,5 +60,7 @@ SNOWFLAKE_SCHEMA=''
 
 ## Resources
 
-- [Application Link](http://35.237.36.236:8502/)
-- [Application Demo](https://www.youtube.com/watch?v=AWAqV3wDaXg)
+[![Application Demo](https://github.com/user-attachments/assets/cdc6f169-3f7e-4af1-8c42-f148f05ecb84)](https://www.youtube.com/watch?v=AWAqV3wDaXg)
+
+[Application Link](http://35.237.36.236:8502/)
+
